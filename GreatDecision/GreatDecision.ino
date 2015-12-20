@@ -2,9 +2,10 @@
   Universal 8bit Graphics Library, http://code.google.com/p/u8glib/
   */
 
-#include <HID.h>
-#include <Keyboard.h>
-#include <U8glib.h>
+#include "HID.h"
+#include "Keyboard.h"
+#include "U8glib.h"
+
 
 enum LOOP_STATUS
 {
@@ -20,7 +21,7 @@ enum MENU_STATUS
 	MENU_MAIN
 } MenuStatus;
 
-#pragma region Screen
+#pragma region ScreenSetup
 
 //Pins for screen SPI
 #define SPI_CS U8G_PIN_NONE	//ChipSelect is already connected by the screen manufacture
@@ -47,7 +48,7 @@ void ScreenSetup()
 
 #pragma endregion
 
-#pragma region Keyboard
+#pragma region KeyboardSetup
 
 //Keyboard -> Pin
 #define PIN_KEY_UP 2
@@ -82,30 +83,30 @@ enum KEYCODE
 	KEYCODE_BACK
 };
 
-enum KEYCODE keyCodeFirst = KEYCODE_NONE;
-enum KEYCODE keyCodeSecond = KEYCODE_NONE;
-enum KEYCODE keyCode = KEYCODE_NONE;
+enum KEYCODE _KeyCodeFirst = KEYCODE_NONE;
+enum KEYCODE _KeyCodeSecond = KEYCODE_NONE;
+enum KEYCODE KeyCode = KEYCODE_NONE;
 
 void ListeningKey() {
-	//backup the keyCodeFirst to keyCodeSecond
-	keyCodeSecond = keyCodeFirst;
-	//read the key to keyCodeFirst
+	//backup the _KeyCodeFirst to _KeyCodeSecond
+	_KeyCodeSecond = _KeyCodeFirst;
+	//read the key to _KeyCodeFirst
 	if (digitalRead(PIN_KEY_UP) == LOW)
-		keyCodeFirst = KEYCODE_UP;
+		_KeyCodeFirst = KEYCODE_UP;
 	else if (digitalRead(PIN_KEY_DOWN) == LOW)
-		keyCodeFirst = KEYCODE_DOWN;
+		_KeyCodeFirst = KEYCODE_DOWN;
 	else if (digitalRead(PIN_KEY_SELECT) == LOW)
-		keyCodeFirst = KEYCODE_SELECT;
+		_KeyCodeFirst = KEYCODE_SELECT;
 	else if (digitalRead(PIN_KEY_BACK) == LOW)
-		keyCodeFirst = KEYCODE_BACK;
+		_KeyCodeFirst = KEYCODE_BACK;
 	else
-		keyCodeFirst = KEYCODE_NONE;
+		_KeyCodeFirst = KEYCODE_NONE;
 
 	//debounce algorithm
-	if (keyCodeSecond == keyCodeFirst)
-		keyCode = keyCodeFirst;
+	if (_KeyCodeSecond == _KeyCodeFirst)
+		KeyCode = _KeyCodeFirst;
 	else
-		keyCode = KEYCODE_NONE;
+		KeyCode = KEYCODE_NONE;
 }
 
 #pragma endregion
@@ -119,6 +120,10 @@ void setup()
 
 void loop()
 {
+	ListeningKey();	//listen the key press event, result is stored in [KeyCode]
+
+	//todo: key logic
+
 	//determine the loop status
 	switch (LoopStatus)
 	{
