@@ -50,7 +50,28 @@ void ScreenSetup()
 
 #pragma region KeyboardSetup
 
-//Keyboard -> Pin
+//Used to statistic key press. Currently only support one key down event.
+enum KEYCODE
+{
+	KEYCODE_NONE,
+	KEYCODE_UP,
+	KEYCODE_DOWN,
+	KEYCODE_SELECT,
+	KEYCODE_DECISION,
+	KEYCODE_BACK
+};
+
+typedef struct KeyCodeStruct
+{
+	enum KEYCODE keyCodeFirst;
+	enum KEYCODE keyCodeSecond;
+	enum KEYCODE keyCode;
+	uint8_t debounceCount;
+	bool isChanged;
+};
+KeyCodeStruct KeyCode;
+
+//Hardware: Keyboard --> Pin
 #define PIN_KEY_UP 2
 #define PIN_KEY_DOWN 3
 #define PIN_KEY_SELECT 4
@@ -74,46 +95,44 @@ void KeyboardSetup() {
 
 	pinMode(PIN_KEY_DECISION, INPUT);
 	digitalWrite(PIN_KEY_DECISION, HIGH);
+
+	KeyCode = { KEYCODE_NONE, KEYCODE_NONE, KEYCODE_NONE, 0, false };
 }
 
-
-//Used to statistic key press. Currently only support one key down event.
-enum KEYCODE
-{
-	KEYCODE_NONE,
-	KEYCODE_UP,
-	KEYCODE_DOWN,
-	KEYCODE_SELECT,
-	KEYCODE_DECISION,
-	KEYCODE_BACK
-};
-
-enum KEYCODE _KeyCodeFirst = KEYCODE_NONE;
-enum KEYCODE _KeyCodeSecond = KEYCODE_NONE;
-enum KEYCODE KeyCode = KEYCODE_NONE;
+#define DEBOUNCE_COUNT 10
 
 void ListeningKey() {
 	//backup the _KeyCodeFirst to _KeyCodeSecond
-	_KeyCodeSecond = _KeyCodeFirst;
-	//read the key to _KeyCodeFirst
+	KeyCode.keyCodeSecond = KeyCode.keyCodeFirst;
+	//read the key to keyCodeFirst
 	if (digitalRead(PIN_KEY_UP) == LOW)
-		_KeyCodeFirst = KEYCODE_UP;
+		KeyCode.keyCodeFirst = KEYCODE_UP;
 	else if (digitalRead(PIN_KEY_DOWN) == LOW)
-		_KeyCodeFirst = KEYCODE_DOWN;
+		KeyCode.keyCodeFirst = KEYCODE_DOWN;
 	else if (digitalRead(PIN_KEY_SELECT) == LOW)
-		_KeyCodeFirst = KEYCODE_SELECT;
+		KeyCode.keyCodeFirst = KEYCODE_SELECT;
 	else if (digitalRead(PIN_KEY_BACK) == LOW)
-		_KeyCodeFirst = KEYCODE_BACK;
+		KeyCode.keyCodeFirst = KEYCODE_BACK;
 	else if (digitalRead(PIN_KEY_DECISION) == LOW)
-		_KeyCodeFirst = KEYCODE_DECISION;
+		KeyCode.keyCodeFirst = KEYCODE_DECISION;
 	else
-		_KeyCodeFirst = KEYCODE_NONE;
+		KeyCode.keyCodeFirst = KEYCODE_NONE;
 
-	//debounce algorithm. It is better to add resister and resister on the board.
-	if (_KeyCodeSecond == _KeyCodeFirst)
-		KeyCode = _KeyCodeFirst;
+	//Debounce algorithm. If the keyCode is stable for pre-defined counts, commit the keyCode.
+	//It is better to add resister and resister on the board.
+	KeyCode.isChanged = false;
+	if (KeyCode.keyCodeSecond == KeyCode.keyCodeFirst)
+	{
+		if (KeyCode.debounceCount < DEBOUNCE_COUNT)
+			KeyCode.debounceCount++;
+		else
+		{
+			KeyCode.keyCode = KeyCode.keyCodeFirst;
+			KeyCode.isChanged = true;
+		}
+	}
 	else
-		KeyCode = KEYCODE_NONE;
+		KeyCode.debounceCount = 0;
 }
 
 #pragma endregion
