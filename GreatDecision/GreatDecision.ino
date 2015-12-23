@@ -55,6 +55,7 @@ void ScreenSetup()
 #define PIN_KEY_DOWN 3
 #define PIN_KEY_SELECT 4
 #define PIN_KEY_BACK 5
+#define PIN_KEY_DECISION 6
 
 //setup keyboard mapping
 void KeyboardSetup() {
@@ -70,6 +71,9 @@ void KeyboardSetup() {
 
 	pinMode(PIN_KEY_BACK, INPUT);
 	digitalWrite(PIN_KEY_BACK, HIGH);
+
+	pinMode(PIN_KEY_DECISION, INPUT);
+	digitalWrite(PIN_KEY_DECISION, HIGH);
 }
 
 
@@ -80,6 +84,7 @@ enum KEYCODE
 	KEYCODE_UP,
 	KEYCODE_DOWN,
 	KEYCODE_SELECT,
+	KEYCODE_DECISION,
 	KEYCODE_BACK
 };
 
@@ -99,10 +104,12 @@ void ListeningKey() {
 		_KeyCodeFirst = KEYCODE_SELECT;
 	else if (digitalRead(PIN_KEY_BACK) == LOW)
 		_KeyCodeFirst = KEYCODE_BACK;
+	else if (digitalRead(PIN_KEY_DECISION) == LOW)
+		_KeyCodeFirst = KEYCODE_DECISION;
 	else
 		_KeyCodeFirst = KEYCODE_NONE;
 
-	//debounce algorithm
+	//debounce algorithm. It is better to add resister and resister on the board.
 	if (_KeyCodeSecond == _KeyCodeFirst)
 		KeyCode = _KeyCodeFirst;
 	else
