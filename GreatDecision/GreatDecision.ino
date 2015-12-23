@@ -10,7 +10,7 @@
 enum LOOP_STATUS
 {
 	LOOP_STANDBY,
-	LOOP_PRESSED,
+	LOOP_FIRE,
 	LOOP_MENU
 } LoopStatus;
 
@@ -57,8 +57,8 @@ enum KEYCODE
 	KEYCODE_UP,
 	KEYCODE_DOWN,
 	KEYCODE_SELECT,
-	KEYCODE_DECISION,
-	KEYCODE_BACK
+	KEYCODE_BACK,
+	KEYCODE_FIRE
 };
 
 typedef struct KeyCodeStruct
@@ -76,7 +76,7 @@ KeyCodeStruct KeyCode;
 #define PIN_KEY_DOWN 3
 #define PIN_KEY_SELECT 4
 #define PIN_KEY_BACK 5
-#define PIN_KEY_DECISION 6
+#define PIN_KEY_FIRE 6
 
 //setup keyboard mapping
 void KeyboardSetup() {
@@ -93,8 +93,8 @@ void KeyboardSetup() {
 	pinMode(PIN_KEY_BACK, INPUT);
 	digitalWrite(PIN_KEY_BACK, HIGH);
 
-	pinMode(PIN_KEY_DECISION, INPUT);
-	digitalWrite(PIN_KEY_DECISION, HIGH);
+	pinMode(PIN_KEY_FIRE, INPUT);
+	digitalWrite(PIN_KEY_FIRE, HIGH);
 
 	KeyCode = { KEYCODE_NONE, KEYCODE_NONE, KEYCODE_NONE, 0, false };
 }
@@ -113,8 +113,8 @@ void ListeningKey() {
 		KeyCode.keyCodeFirst = KEYCODE_SELECT;
 	else if (digitalRead(PIN_KEY_BACK) == LOW)
 		KeyCode.keyCodeFirst = KEYCODE_BACK;
-	else if (digitalRead(PIN_KEY_DECISION) == LOW)
-		KeyCode.keyCodeFirst = KEYCODE_DECISION;
+	else if (digitalRead(PIN_KEY_FIRE) == LOW)
+		KeyCode.keyCodeFirst = KEYCODE_FIRE;
 	else
 		KeyCode.keyCodeFirst = KEYCODE_NONE;
 
@@ -149,6 +149,36 @@ void loop()
 	ListeningKey();	//listen the key press event, result is stored in [KeyCode]
 
 	//todo: key logic
+	switch (KeyCode.keyCode)
+	{
+	//fire
+	case KEYCODE_FIRE:
+		LoopStatus = LOOP_FIRE;
+		break;
+	//goto shortcut menu
+	case KEYCODE_UP:
+	case KEYCODE_DOWN:
+		if (LoopStatus == LOOP_STANDBY)
+		{
+			LoopStatus = LOOP_MENU;
+			MenuStatus = MENU_SHORTCUT;
+		}
+		break;
+	//goto main menu
+	case KEYCODE_SELECT:
+	case KEYCODE_BACK:
+		if (LoopStatus == LOOP_STANDBY)
+		{
+			LoopStatus = LOOP_MENU;
+			MenuStatus = MENU_MAIN;
+		}
+		break;
+	case KEYCODE_NONE:
+		break;
+	default:
+		break;
+	}
+
 
 	//determine the loop status
 	switch (LoopStatus)
@@ -157,7 +187,7 @@ void loop()
 		// do something
 		break;
 
-	case LOOP_PRESSED:
+	case LOOP_FIRE:
 		// do something
 		break;
 
